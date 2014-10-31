@@ -7,7 +7,7 @@ from html.parser import HTMLParser  # python 3.3 or older
 import praw
 
 from ArgParseLogging import addLoggingArgs, handleLoggingArgs
-from GotW import getGotWPostText, updateGotWWiki, updateGotWSidebar
+from GotW import getGotWPostText, updateGotWWiki, updateGotWSidebar, getNotFoundGames
 
 
 log = logging.getLogger('gotw')
@@ -38,6 +38,9 @@ if __name__ == '__main__':
     if not match:
         log.critical(u'Unable to find the upcoming GOTW in the wiki page "{}". Are there embedded'
                      u' delimiters in the page [//]: (CALS) and [//]: (CALE)?'.format(wiki_path))
+        reddit.send_message(u'#' + subreddit, subject=u'Unable to post GotW',
+                            message=u'There was a problem posting the GotW. Take a look at '
+                                    u'the gotw wiki page. There is something amiss.')
         exit(1)
 
     cal_games = re.findall(u'\*\s+(.*)\s+', match.group(0))
@@ -46,6 +49,19 @@ if __name__ == '__main__':
         exit(2)
 
     cal_games = [g.rstrip('\r\n') for g in cal_games]
+
+    # first confirm the games are searchable. If not give up!
+    not_found = getNotFoundGames(cal_games)
+    if not_found:
+        log.info(u'Sending mod mail. We could not find game(s) {}'.format(', '.join(not_found)))
+        reddit.send_message(u'#' + subreddit, subject=u'Error in GotW Calendar',
+                            message=u'Could not find the following game(s) on BGG: {}'
+                                    u'. Please fix the GotW wiki calendar and re-run the GotW '
+                                    u' script.'.format(', '.join(not_found)))
+        log.critical(u'Games on calendar not found. Bailing.')
+        exit(3)
+
+
     next_gotw_name = cal_games[1] if len(cal_games) > 2 else None
     log.info(u'found next game of the week: {}. Followed by {}'.format(
         cal_games[0], next_gotw_name))
@@ -55,32 +71,34 @@ if __name__ == '__main__':
 
     if not post_text:
         log.critical(u'Error getting GotW post text')
-        exit(3)
+        exit(4)
 
     log.debug(u'Posting gotw text: {}'.format(post_text))
-
     post = reddit.submit(subreddit, title=u'Game of the Week: {}'.format(cal_games[0]), text=post_text)
     post.distinguish(as_made_by=u'mod')
+    log.info(u'Submitted gotw post for {}.'.format(cal_games[0]))
 
+    # remind mods if fewer than 3 games left in calendar
     if len(cal_games) <= 2:
-        # GTL - figure out ho to send modmail here and let mods 
-        # know there is no GOTW scheduled for next week.
-        pass
+        log.info(u'Sending mod mail as there are fewer than 3 games in the GotW queue.')
+        reddit.send_message(u'#' + subreddit, subject=u'Top up the GotW Calendar', 
+                            message=u'Fewer than three games on the GotW. Please add more.')
 
     new_wiki_page = updateGotWWiki(gotw_wiki.content_md, cal_games, post.id)
     if not new_wiki_page:
         log.critical(u'Unable to update GotW wiki page for some reason.')
-        exit(4)
+        exit(5)
 
     reddit.edit_wiki_page(subreddit=subreddit, page=wiki_path, content=new_wiki_page,
                           reason=u'GotW post update for {}'.format(cal_games[0]))
+    log.info(u'GotW wiki information updated.')
 
     # finally update the sidebar/link menu
     sidebar = HTMLParser().unescape(reddit.get_subreddit(subreddit).get_settings()["description"])
     new_sidebar = updateGotWSidebar(sidebar, cal_games[0], post.id)
     if new_sidebar == sidebar:
         log.critical(u'Error updating the sidebar for GotW.')
-        exit(5)
+        exit(6)
 
     reddit.get_subreddit(subreddit).update_settings(description=new_sidebar)
     log.info(u'Sidebar updated with new GotW information.')

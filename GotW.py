@@ -6,6 +6,25 @@ from boardgamegeek import BoardGameGeek as BGG
 
 log = logging.getLogger('gotw')
 
+def getNotFoundGames(games):
+    '''take a list of games and return those that are not found.'''
+    bgg = BGG()
+    not_found = []
+    for game in games:
+        try:
+            log.info(u'Looking for {} on BGG.'.format(game))
+            found = bgg.game(game)
+        except boardgamegeek.exceptions.BoardGameGeekError as e:
+            log.critical(u'Error talking to BGG about {}'.format(game))
+            continue
+
+        if not found:
+            log.warning(u'Unable to find {} on BGG'.format(game))
+            not_found.append(game)
+
+    return not_found
+
+
 def getGotWPostText(game_name, next_game_name):
     '''Take the name of a game, and return the GotW text to post to Reddit'''
     bgg = BGG()
