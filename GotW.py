@@ -39,6 +39,7 @@ def getGotWPostText(game_name, next_game_name):
         log.critical(u'Unable to find {} on BGG'.format(game_name))
         return None
 
+    title = u'Game of the Week: {}'.format(game.name)
     text = u'[//]: # (GOTWS)\n'
     text += (u'This week\'s game is [**{}**](http:{})\n\n'.format(game.name, game.image))
     text += u' * **BGG Link**: [{}](http://www.boardgamegeek.com/boardgame/{})\n'.format(
@@ -102,9 +103,9 @@ def getGotWPostText(game_name, next_game_name):
 
         text += (u' * The wiki page for GotW including the schedule can be '
                  ' found [here](http://www.reddit.com/r/boardgames/wiki/'
-                 ' game_of_the_week).\n\n')
+                 ' game_of_the_week).\n')
 
-    return text
+    return title, text
 
 def updateGotWWiki(page, gotws, post_id):
     ### update the wiki page.

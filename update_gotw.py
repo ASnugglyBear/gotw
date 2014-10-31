@@ -67,14 +67,14 @@ if __name__ == '__main__':
         cal_games[0], next_gotw_name))
 
     # get the text of the GotW post.
-    post_text = getGotWPostText(cal_games[0], next_gotw_name)
+    title, post_text = getGotWPostText(cal_games[0], next_gotw_name)
 
     if not post_text:
         log.critical(u'Error getting GotW post text')
         exit(4)
 
     log.debug(u'Posting gotw text: {}'.format(post_text))
-    post = reddit.submit(subreddit, title=u'Game of the Week: {}'.format(cal_games[0]), text=post_text)
+    post = reddit.submit(subreddit, title=title, text=post_text)
     post.distinguish(as_made_by=u'mod')
     log.info(u'Submitted gotw post for {}.'.format(cal_games[0]))
 
