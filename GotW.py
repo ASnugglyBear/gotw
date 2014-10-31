@@ -67,7 +67,7 @@ def getGotWPostText(game_name, next_game_name):
     text += '---------------------\n\n'
 
     if not next_game_name:
-        text += 'There is no Game of the Week scheduled for next week.'
+        text += u'There is no Game of the Week scheduled for next week.'
     else:
         try:
             game = bgg.game(next_game_name)
@@ -76,40 +76,40 @@ def getGotWPostText(game_name, next_game_name):
                 next_game_name, e))
 
         if not game:
-            text += 'Next Week: {}'.format(next_game_name)
+            text += u'Next Week: {}'.format(next_game_name)
         else:
-            text += ('Next Week: [**{}**](http://www.boardgamegeek'
-                     '.com/boardgame/{})\n\n'.format(game.name, game.id))
+            text += (u'Next Week: [**{}**](http://www.boardgamegeek'
+                     u'.com/boardgame/{})\n\n'.format(game.name, game.id))
 
     return text
 
 def updateGotWWiki(page, gotws, post_id):
     ### update the wiki page.
     # remove the gotw from the calendar
-    search_for = '\[//]:\s\(CALS\)\s.+\[//]:\s\(CALE\)\s'
+    search_for = u'\[//]:\s\(CALS\)\s.+\[//]:\s\(CALE\)\s'
     new_cal_list = u''.join([u' * {}\n'.format(g) for g in gotws[1:]])
-    new_cal = '[//]: (CALS)\n' + new_cal_list + '[//]: (CALE)\n'
+    new_cal = u'[//]: (CALS)\n' + new_cal_list + u'[//]: (CALE)\n'
     new_wiki_page = re.sub(search_for, new_cal, page, flags=re.DOTALL)
 
     if new_wiki_page == page:
-        log.error('Error updating the calenda on the wiki page.')
+        log.error(u'Error updating the calenda on the wiki page.')
         return None
 
     # load up the archive, add this week's gotw, sort by date, subs in the new list.
-    games = re.findall('(\d{4}-\d{2}-\d{2}) : \[([^\]]+)\]\(/(\w+)\)', new_wiki_page)
+    games = re.findall(u'(\d{4}-\d{2}-\d{2}) : \[([^\]]+)\]\(/(\w+)\)', new_wiki_page)
     if not games:
-        log.critical('Unable to find archived GOTW links in wiki page')
+        log.critical(u'Unable to find archived GOTW links in wiki page')
         return None
 
     # add the new game to the archive list.
-    games.append(['{}'.format(date.today()), gotws[0], post_id])
+    games.append([u'{}'.format(date.today()), gotws[0], post_id])
 
     # now write them out and subst into wiki page.
     # (sort by name for reinsertion)
     games = sorted(games, key=lambda x: x[1])
     new_arch_list = u''.join([u' * {} : [{}](/{})\n'.format(g[0], g[1], g[2]) for g in games])
-    new_arch = '[//]: (GOTWS)\n' + new_arch_list + '[//]: (GOTWE)\n'
-    search_for = '\[//]:\s\(GOTWS\)\s.+\[//]:\s\(GOTWE\)\s'
+    new_arch = u'[//]: (GOTWS)\n' + new_arch_list + u'[//]: (GOTWE)\n'
+    search_for = u'\[//]:\s\(GOTWS\)\s.+\[//]:\s\(GOTWE\)\s'
     new_wiki = re.sub(search_for, new_arch, new_wiki_page, flags=re.DOTALL)
 
     return new_wiki
@@ -118,23 +118,23 @@ def updateGotWSidebar(sidebar, game_name, post_id):
     # update in two places. The linkbar and the sidebar. 
     # link bar is not distinguished by a comment, but does have
     # "[Game of the Week:..." which we can search for.
-    new_sb = re.sub('\[Game of the Week:[^\]]+\]\(/\w+\)\s', 
-                    '[Game of the Week: {}](/{}) '.format(game_name, post_id), 
+    new_sb = re.sub(u'\[Game of the Week:[^\]]+\]\(/\w+\)\s', 
+                    u'[Game of the Week: {}](/{}) '.format(game_name, post_id), 
                     sidebar,
                     flags=re.DOTALL)
     
     if new_sb == sidebar:
-        log.error('Error updating GOTW in linkbar.')
+        log.error(u'Error updating GOTW in linkbar.')
         return sidebar
 
     # sidebar link ends with " [//]: # (GOTWLINK)"
-    new_new_sb = re.sub('\[//\]: # \(GOTWLINK\)\n\[[^\]]+\]\(/\w+\)',
-                        '[//]: # (GOTWLINK)\n[{}](/{})'.format(game_name, post_id), 
+    new_new_sb = re.sub(u'\[//\]: # \(GOTWLINK\)\n\[[^\]]+\]\(/\w+\)',
+                        u'[//]: # (GOTWLINK)\n[{}](/{})'.format(game_name, post_id), 
                         new_sb,
                         flags=re.DOTALL)
 
     if new_new_sb == new_sb:
-        log.error('Error updating GOTW in link in sidebar.')
+        log.error(u'Error updating GOTW in link in sidebar.')
         return sidebar
 
     return new_new_sb

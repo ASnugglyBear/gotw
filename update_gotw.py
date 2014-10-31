@@ -57,10 +57,10 @@ if __name__ == '__main__':
         log.critical(u'Error getting GotW post text')
         exit(3)
 
-    log.debug('Posting gotw text: {}'.format(post_text))
+    log.debug(u'Posting gotw text: {}'.format(post_text))
 
-    post = reddit.submit(subreddit, title='Game of the Week: {}'.format(cal_games[0]), text=post_text)
-    post.distinguish(as_made_by='mod')
+    post = reddit.submit(subreddit, title=u'Game of the Week: {}'.format(cal_games[0]), text=post_text)
+    post.distinguish(as_made_by=u'mod')
 
     if len(cal_games) <= 2:
         # GTL - figure out ho to send modmail here and let mods 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     new_wiki_page = updateGotWWiki(gotw_wiki.content_md, cal_games, post.id)
     if not new_wiki_page:
-        log.critical('Unable to update GotW wiki page for some reason.')
+        log.critical(u'Unable to update GotW wiki page for some reason.')
         exit(4)
 
     reddit.edit_wiki_page(subreddit=subreddit, page=wiki_path, content=new_wiki_page,
@@ -79,10 +79,10 @@ if __name__ == '__main__':
     sidebar = HTMLParser().unescape(reddit.get_subreddit(subreddit).get_settings()["description"])
     new_sidebar = updateGotWSidebar(sidebar, cal_games[0], post.id)
     if new_sidebar == sidebar:
-        log.critical('Error updating the sidebar for GotW.')
+        log.critical(u'Error updating the sidebar for GotW.')
         exit(5)
 
     reddit.get_subreddit(subreddit).update_settings(description=new_sidebar)
-    log.info('Sidebar updated with new GotW information.')
+    log.info(u'Sidebar updated with new GotW information.')
 
     exit(0)  # success!
