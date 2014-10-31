@@ -2,7 +2,7 @@ import logging
 import argparse
 import re
 from sys import exit
-from html.parser import HTMLParser  # python 3.3 or older
+from html import unescape, escape  # python 3.4+
 
 import praw
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     handleLoggingArgs(args)
 
     wiki_path = args.wiki if args.wiki else u'game_of_the_week'
-    subreddit = args.subreddit if args.subreddit else u'phil_s_stein'
+    subreddit = args.subreddit if args.subreddit else u'boardgames'
 
     reddit = praw.Reddit(u'Game of the Week poster for /r/boardgames by /u/phil_s_stien')
     reddit.login()  # use ambient praw.ini or stdin/getpass
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         exit(3)
 
 
-    next_gotw_name = cal_games[1] if len(cal_games) > 2 else None
+    next_gotw_name = cal_games[1] if len(cal_games) >= 2 else None
     log.info(u'found next game of the week: {}. Followed by {}'.format(
         cal_games[0], next_gotw_name))
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         reddit.send_message(u'#' + subreddit, subject=u'Top up the GotW Calendar', 
                             message=u'Fewer than three games on the GotW. Please add more.')
 
-    new_wiki_page = updateGotWWiki(gotw_wiki.content_md, cal_games, post.id)
+    new_wiki_page = updateGotWWiki(unescape(gotw_wiki.content_md), cal_games, post.id)
     if not new_wiki_page:
         log.critical(u'Unable to update GotW wiki page for some reason.')
         exit(5)
@@ -94,12 +94,12 @@ if __name__ == '__main__':
     log.info(u'GotW wiki information updated.')
 
     # finally update the sidebar/link menu
-    sidebar = HTMLParser().unescape(reddit.get_subreddit(subreddit).get_settings()["description"])
+    sidebar = unescape(reddit.get_subreddit(subreddit).get_settings()["description"])
     new_sidebar = updateGotWSidebar(sidebar, cal_games[0], post.id)
     if new_sidebar == sidebar:
         log.critical(u'Error updating the sidebar for GotW.')
         exit(6)
-
+    
     reddit.get_subreddit(subreddit).update_settings(description=new_sidebar)
     log.info(u'Sidebar updated with new GotW information.')
 
