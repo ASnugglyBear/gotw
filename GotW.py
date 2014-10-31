@@ -101,8 +101,8 @@ def getGotWPostText(game_name, next_game_name):
             text += (u'Next Week: [**{}**](http://www.boardgamegeek'
                      u'.com/boardgame/{})\n\n'.format(game.name, game.id))
 
-        text += (u' * The wiki page for GotW including the schedule can be '
-                 ' found [here](http://www.reddit.com/r/boardgames/wiki/'
+        text += (u' * The GOTW archive and schedule can be found '
+                 '[here](http://www.reddit.com/r/boardgames/wiki/'
                  ' game_of_the_week).\n')
 
     return title, text
