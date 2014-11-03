@@ -53,13 +53,13 @@ if __name__ == '__main__':
     # first confirm the games are searchable. If not give up!
     not_found = getNotFoundGames(cal_games)
     if not_found:
-        log.info(u'Sending mod mail. We could not find game(s) {}'.format(', '.join(not_found)))
-        reddit.send_message(u'#' + subreddit, subject=u'Error in GotW Calendar',
-                            message=u'Could not find the following game(s) on BGG: {}'
-                                    u'. Please fix the GotW wiki calendar and re-run the GotW '
-                                    u' script.'.format(', '.join(not_found)))
-        log.critical(u'Games on calendar not found. Bailing.')
-        exit(3)
+       log.info(u'Sending mod mail. We could not find game(s) {}'.format(', '.join(not_found)))
+       reddit.send_message(u'#' + subreddit, subject=u'Error in GotW Calendar',
+                           message=u'Could not find the following game(s) on BGG: {}'
+                                   u'. Please fix the GotW wiki calendar and re-run the GotW '
+                                   u' script.'.format(', '.join(not_found)))
+       log.critical(u'Games on calendar not found. Bailing.')
+       exit(3)
 
 
     next_gotw_name = cal_games[1] if len(cal_games) >= 2 else None
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         log.critical(u'Error getting GotW post text')
         exit(4)
 
-    log.debug(u'Posting gotw text: {}'.format(post_text))
+    # log.debug(u'Posting gotw text: {}'.format(post_text))
     post = reddit.submit(subreddit, title=title, text=post_text)
     post.distinguish(as_made_by=u'mod')
     log.info(u'Submitted gotw post for {}.'.format(cal_games[0]))
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     # finally update the sidebar/link menu
     sidebar = unescape(reddit.get_subreddit(subreddit).get_settings()["description"])
-    new_sidebar = updateGotWSidebar(sidebar, cal_games[0], post.id)
+    new_sidebar = updateGotWSidebar(sidebar, cal_games[0], next_gotw_name, post.id)
     if new_sidebar == sidebar:
         log.critical(u'Error updating the sidebar for GotW.')
         exit(6)

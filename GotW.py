@@ -102,8 +102,9 @@ def getGotWPostText(game_name, next_game_name):
                      u'.com/boardgame/{})\n\n'.format(game.name, game.id))
 
         text += (u' * The GOTW archive and schedule can be found '
-                 '[here](http://www.reddit.com/r/boardgames/wiki/'
-                 ' game_of_the_week).\n')
+                 u'[here](http://www.reddit.com/r/boardgames/wiki/'
+                 u' game_of_the_week).\n\n * Vote for future Game of the Weeks '
+                 u'[right here](/2l5xum).\n')
 
     return title, text
 
@@ -138,7 +139,7 @@ def updateGotWWiki(page, gotws, post_id):
 
     return new_wiki
 
-def updateGotWSidebar(sidebar, game_name, post_id):
+def updateGotWSidebar(sidebar, game_name, next_week_game, post_id):
     # update in two places. The linkbar and the sidebar. 
     # link bar is not distinguished by a comment, but does have
     # "[Game of the Week:..." which we can search for.
@@ -151,14 +152,37 @@ def updateGotWSidebar(sidebar, game_name, post_id):
         log.error(u'Error updating GOTW in linkbar.')
         return sidebar
 
-    # sidebar link ends with " [//]: # (GOTWLINK)"
-    new_new_sb = re.sub(u'\[//\]: # \(GOTWLINK\)\n\[[^\]]+\]\(/\w+\)',
-                        u'[//]: # (GOTWLINK)\n[{}](/{})'.format(game_name, post_id), 
-                        new_sb,
-                        flags=re.DOTALL)
-
-    if new_new_sb == new_sb:
-        log.error(u'Error updating GOTW in link in sidebar.')
+    # sidebar chunk is between GTOWS and GOTWE
+    m = re.search(u'\[//\]: # \(GOTWS\)\s+(.+)\s+\[//\]: # \(GOTWE\)\s+',
+                  new_sb, flags=re.DOTALL)
+    if not m:
+        log.error('Unable to find GOTW text in sidebar. Are the flags there?')
         return sidebar
 
-    return new_new_sb
+    gotw_text = m.group(1)
+
+    # GOTW link
+    gotw_text = re.sub(u'\[[^\]]+\]\(/\w+\)',
+                       u'[{}](/{})'.format(game_name, post_id), 
+                       gotw_text, count=1, flags=re.DOTALL)
+    if not gotw_text:
+        log.error('Error replacing GotW text.')
+        return sidebar
+
+    # next week's game
+    gotw_text = re.sub(u'Next week: [^\n\r]+\s',
+                       u'Next week: {}\n\n'.format(next_week_game),
+                       gotw_text, flags=re.DOTALL)
+    if not gotw_text:
+        log.error('Error replacing next week gotw text.')
+        return sidebar
+
+    # insert new text into sidebar.
+    new_sb = re.sub(u'\[//\]: # \(GOTWS\)\s+.+\s+\[//\]: # \(GOTWE\)\s+', 
+                    u'[//]: # (GOTWS)\n{}\n[//]: # (GOTWE)\n\n'.format(gotw_text),
+                    new_sb, flags=re.DOTALL)
+    if not new_sb:
+        log.error('Unable to insert new GOTW text into the sidebar.')
+        return sidebar
+
+    return new_sb
