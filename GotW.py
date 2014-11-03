@@ -103,8 +103,8 @@ def getGotWPostText(game_name, next_game_name):
 
         text += (u' * The GOTW archive and schedule can be found '
                  u'[here](http://www.reddit.com/r/boardgames/wiki/'
-                 u' game_of_the_week).\n\n * Vote for future Game of the Weeks '
-                 u'[right here](/2l5xum).\n')
+                 u'game_of_the_week).\n\n * Vote for future Game of the Weeks '
+                 u'[here](/2l5xum).\n')
 
     return title, text
 
