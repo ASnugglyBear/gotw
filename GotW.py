@@ -131,7 +131,15 @@ def updateGotWWiki(page, gotws, post_id):
 
     # now write them out and subst into wiki page.
     # (sort by name for reinsertion)
-    games = sorted(games, key=lambda x: x[1])
+    def sortGames(g):
+        '''Strip the As and Thes when sorting.'''
+        if g[1].startswith(('A ', 'a ')):
+            return g[1][2:]
+        if g[1].startswith(('The ', 'the ')):
+            return g[1][4:]
+        return g[1]
+
+    games = sorted(games, key=sortGames)
     new_arch_list = u''.join([u' * {} : [{}](/{})\n'.format(g[0], g[1], g[2]) for g in games])
     new_arch = u'[//]: (GOTWS)\n' + new_arch_list + u'[//]: (GOTWE)\n'
     search_for = u'\[//]:\s\(GOTWS\)\s.+\[//]:\s\(GOTWE\)\s'
