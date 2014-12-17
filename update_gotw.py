@@ -79,7 +79,7 @@ if __name__ == '__main__':
     log.info(u'Submitted gotw post for {}.'.format(cal_games[0]))
 
     # remind mods if fewer than 3 games left in calendar
-    if len(cal_games) <= 2:
+    if len(cal_games) <= 3:   # this is *before* removing one so 4 is too many.
         log.info(u'Sending mod mail as there are fewer than 3 games in the GotW queue.')
         reddit.send_message(u'#' + subreddit, subject=u'Top up the GotW Calendar', 
                             message=u'Fewer than three games on the GotW. Please add more.')
